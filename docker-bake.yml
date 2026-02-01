@@ -1,0 +1,57 @@
+# 1. VARIABLES - Define defaults that can be overridden by ENV vars
+variable:
+  REGISTRY: "docker.io/my-username"
+  VERSION: "latest"
+
+# 2. GROUPS - Defines what builds when you run 'docker buildx bake'
+group:
+  default:
+    targets: ["frontend", "backend"]
+
+# 3. TARGETS - The actual build configurations
+target:
+  # Base target for shared settings (DRY Principle)
+  _common:
+    platforms: ["linux/amd64", "linux/arm64"]
+  
+    labels:
+      org.opencontainers.image.source: "https://github.com/my-org/my-project"
+      org.opencontainers.image.created: "${timestamp()}"
+      org.opencontainers.image.revision: "${GITHUB_SHA}"
+
+  frontend:
+    inherits: ["_common"]
+    context: "./snapcart-frontend"
+    dockerfile: "Dockerfile"
+    tags:
+      - "${REGISTRY}/frontend:${VERSION}"
+      - "${REGISTRY}/frontend:latest"
+    # Target-specific registry cache as a fallback/secondary
+    cache-from:
+      - "type=local,src=.buildx-cache/frontend" 
+      - "type=gha,scope=frontend"
+      - "type=registry,ref=${REGISTRY}/frontend:buildcache"
+    cache-to: 
+      - "type=local,dest=.buildx-cache/frontend,mode=max"
+      - "type=gha,scope=frontend,mode=max"
+      - "type=registry,ref=${REGISTRY}/frontend:buildcache,mode=max"
+    args:
+      NODE_ENV: "production"
+
+  backend:
+    inherits: ["_common"]
+    context: "./snapcart-backend"
+    dockerfile: "Dockerfile"
+    tags:
+      - "${REGISTRY}/backend:${VERSION}"
+      - "${REGISTRY}/backend:latest"
+    cache-from:
+      - "type=local,src=.buildx-cache/backend" 
+      - "type=gha,scope=backend"
+      - "type=registry,ref=${REGISTRY}/backend:buildcache"
+    cache-to:
+      - "type=local,dest=.buildx-cache/backend,mode=max" 
+      - "type=gha,scope=backend,mode=max"
+      - "type=registry,ref=${REGISTRY}/backend:buildcache,mode=max"
+    # Target a specific stage in a multi-stage Dockerfile
+    target: "release"
