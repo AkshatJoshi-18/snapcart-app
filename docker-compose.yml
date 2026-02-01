@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  app:
-    image: akshat8630/snapcart-frontend
-    container_name: snapcart-app
+  frontend:
+    image: akshat8630/snapcart-frontend:latest
+    container_name: snapcart-frontend
     env_file:
       - .env.local
     ports:
@@ -12,17 +12,10 @@ services:
       - backend
     networks:
       - snapcart-net
-
-  mongo:
-    image: mongo:7
-    container_name: snapcart-mongo
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - snapcart-net
+    restart: unless-stopped
 
   backend:
-    image: akshat8630/snapcart-backend
+    image: akshat8630/snapcart-backend:latest
     container_name: snapcart-backend
     env_file:
       - .env
@@ -32,9 +25,20 @@ services:
       - mongo
     networks:
       - snapcart-net
-  
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: snapcart-mongo
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - snapcart-net
+    restart: unless-stopped
+
 networks:
   snapcart-net:
+    driver: bridge
 
 volumes:
   mongo-data:

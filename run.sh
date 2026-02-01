@@ -1,1 +1,0 @@
-REGISTRY=akshat8630/akshatjoshi VERSION=latest docker buildx bake --load
