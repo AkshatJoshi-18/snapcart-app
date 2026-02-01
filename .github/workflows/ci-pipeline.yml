@@ -1,0 +1,54 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Use your Docker Hub username here, or map it from secrets
+  REGISTRY: ${{ secrets.DOCKER_USERNAME }}
+  
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Set up QEMU (Required for ARM64 builds on Linux runners)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 2. Set up Docker Buildx (Required for Bake)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Login to Docker Hub (Only if pushing)
+      # We need this even on PRs if you want to READ the cache from the registry
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. Build and Push (The Magic Step)
+      - name: Build and Push
+        uses: docker/bake-action@v4
+        with:
+          files: docker-bake.hcl
+          # Push to registry ONLY on main branch
+          push: ${{ github.event_name != 'pull_request' }}
+          # On PRs, we just want to load it locally to ensure it builds
+          load: ${{ github.event_name == 'pull_request' }}
+        env:
+          # Pass variables to docker-bake.hcl
+          REGISTRY: ${{ secrets.DOCKER_USERNAME }}
+          VERSION: ${{ github.sha }}
+          GITHUB_SHA: ${{ github.sha }}
+          CI: "true"
+          # Logic: On 'main' build Multi-Arch. On 'PR' build Single-Arch (faster validation).
+          PLATFORMS: ${{ github.event_name != 'pull_request' && '["linux/amd64", "linux/arm64"]' || '["linux/amd64"]' }}
