@@ -6,9 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  # Use your Docker Hub username here, or map it from secrets
-  REGISTRY: ${{ secrets.DOCKER_USERNAME }}
+
   
 jobs:
   docker-build:
