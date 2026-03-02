@@ -16,7 +16,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       # 1. Set up QEMU (Required for ARM64 builds on Linux runners)
       - name: Set up QEMU
@@ -37,7 +37,7 @@ jobs:
 
       # 4. Build and Push
       - name: Build and Push
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v5
         with:
           files: docker-bake.hcl
           # Push to registry ONLY on main branch
