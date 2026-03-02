@@ -46,7 +46,6 @@ jobs:
           load: ${{ github.event_name == 'pull_request' }}
         env:
           # Pass variables to docker-bake.hcl
-          REGISTRY: ${{ secrets.DOCKER_USERNAME }}
           VERSION: ${{ github.sha }}
           GITHUB_SHA: ${{ github.sha }}
           CI: "true"
