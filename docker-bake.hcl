@@ -15,7 +15,8 @@ variable "CI" {
 }
 
 variable "PLATFORMS" {
-  default = null
+  type    = list(string)
+  default = []
 }
 
 group "default" {
