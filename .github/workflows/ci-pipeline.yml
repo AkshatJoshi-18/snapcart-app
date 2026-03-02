@@ -51,4 +51,4 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           CI: "true"
           # Logic: On 'main' build Multi-Arch. On 'PR' build Single-Arch (faster validation).
-          PLATFORMS: ${{ github.event_name != 'pull_request' && '["linux/amd64", "linux/arm64"]' || '["linux/amd64"]' }}
+          PLATFORMS: ${{ github.event_name != 'pull_request' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
